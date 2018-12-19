@@ -13,9 +13,9 @@
 int server_handshake(int *to_client) {
 
   int up = 0;
-  char pid[30];
-  char msg[30];
-  char pipe1writemessage[30] = "Hello Server!!";
+  char pid[HANDSHAKE_BUFFER_SIZE];
+  char msg[HANDSHAKE_BUFFER_SIZE];
+  // char pipe1writemessage[30] = "Hello Server!!";
 
 
   mkfifo("WKP", 0644);
@@ -32,7 +32,7 @@ int server_handshake(int *to_client) {
   *to_client = open(pid, O_WRONLY);
   printf("Server PID given: %d\n", *to_client);
   // writes message to private pipe for client
-  write(*to_client, pipe1writemessage, sizeof(pipe1writemessage));
+  write(*to_client, ACK, sizeof(ACK));
 
   // reads client's response from private pipe
   read(up, msg, sizeof(msg));
@@ -67,9 +67,9 @@ int server_handshake(int *to_client) {
 int client_handshake(int *to_server) {
 
   int down = 0;
-  char pid[30];
-  char msg[30];
-  char pipe1writemessage[30] = "Hello Client!!";
+  char pid[HANDSHAKE_BUFFER_SIZE];
+  char msg[HANDSHAKE_BUFFER_SIZE];
+  // char pipe1writemessage[30] = "Hello Client!!";
   sprintf(pid, "%d", getpid());
 
   mkfifo(pid, 0644);
@@ -91,8 +91,8 @@ int client_handshake(int *to_server) {
   remove(pid);
 
   // writes message from client to server using WKP
-  write(*to_server, pipe1writemessage, sizeof(pipe1writemessage));
-  printf("CLIENT WROTE '%s' TO SERVER\n", pipe1writemessage);
+  write(*to_server, ACK, sizeof(ACK));
+  printf("CLIENT WROTE '%s' TO SERVER\n", ACK);
 
   return down;
 }
