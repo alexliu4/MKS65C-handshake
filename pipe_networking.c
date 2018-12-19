@@ -12,25 +12,30 @@
   =========================*/
 int server_handshake(int *to_client) {
 
-  int up;
-  char pid[HANDSHAKE_BUFFER_SIZE];
-  char msg[HANDSHAKE_BUFFER_SIZE];
+  int up = 0;
+  char pid[30];
+  char msg[30];
   char pipe1writemessage[30] = "Hello Server!!";
 
 
   mkfifo("WKP", 0644);
-  printf("pipe created WKP\n");
+  printf("WKP pipe created and opened\n");
   up = open ("WKP", O_RDONLY);
   //down = open ("server_side", O_RDWR); // kinda useless
   printf("pipe opened: %d\n", up);
+
   read(up, pid, sizeof(pid));
   //semaphores can be used
   remove("WKP");
+
+  // opens private pipe
   *to_client = open(pid, O_WRONLY);
   printf("Server PID given: %d\n", *to_client);
-
+  // writes message to private pipe for client
   write(*to_client, pipe1writemessage, sizeof(pipe1writemessage));
-  read(*to_client, msg, sizeof(msg));
+
+  // reads client's response from private pipe
+  read(up, msg, sizeof(msg));
   printf("MESSAGE: %s\n", msg);
 
 
@@ -60,25 +65,34 @@ int server_handshake(int *to_client) {
   returns the file descriptor for the downstream pipe.
   =========================*/
 int client_handshake(int *to_server) {
-  int up;
-  mkfifo("server_side", 0644);
-  printf("pipe created\n");
-  up = open ("server_side", O_RDONLY);
+
+  int down = 0;
+  char pid[30];
+  char msg[30];
+  char pipe1writemessage[30] = "Hello Client!!";
+  sprintf(pid, "%d", getpid());
+
+  mkfifo(pid, 0644);
+  printf("pipe created pid\n");
+  *to_server = open ("WKP", O_WRONLY);
   //down = open ("server_side", O_RDWR); // kinda useless
-  printf("pipe opened: %d\n", up);
-  //semaphores can be used
+  printf("pipe opened: %d\n", *to_server);
 
-  int down;
-  mkfifo("client_side", 0644);
-  printf("pipe created\n");
-  down = open ("client_side", O_RDONLY);
-  //down = open ("client_side", O_RDWR); // kinda useless
-  printf("pipe opened: %d\n", down);
-  //semaphores can be used
-  *to_server = down;
+  // Client wrote to WKP
+  write(*to_server, pid, sizeof(pid));
 
-  // close(to_child_fd[1]);  /* child closes write side of child  pipe */
-  // close(to_parent_fd[0]); /* child closes read  side of parent pipe */
+  // Client opens private pipe
+  down = open(pid, O_RDONLY);
+  // reads message from server
+  read(down, msg, sizeof(msg));
+  printf("CLIENT READ SERVER'S MESSAGE '%s'\n", msg);
 
-  return up;
+  // removing private pipe
+  remove(pid);
+
+  // writes message from client to server using WKP
+  write(*to_server, pipe1writemessage, sizeof(pipe1writemessage));
+  printf("CLIENT WROTE '%s' TO SERVER\n", pipe1writemessage);
+
+  return down;
 }
