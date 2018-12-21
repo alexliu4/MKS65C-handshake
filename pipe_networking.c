@@ -11,10 +11,11 @@
   returns the file descriptor for the upstream pipe.
   =========================*/
 int server_handshake(int *to_client) {
+  printf("SERVER HANDSHAKE\n" );
 
   int up = 0;
   char pid[HANDSHAKE_BUFFER_SIZE];
-  char msg[HANDSHAKE_BUFFER_SIZE];
+  char msg[100];
   // char pipe1writemessage[30] = "Hello Server!!";
 
 
@@ -36,20 +37,19 @@ int server_handshake(int *to_client) {
 
   // reads client's response from private pipe
   read(up, msg, sizeof(msg));
-  printf("MESSAGE: %s\n", msg);
+  printf("TEST MESSAGE: %s\n", msg);
 
+  /*==========================UPDATED VERSION==========================*/
+  // reads client's response from pipe
+  while (1){
+    // clears the msg variable
+    strcpy(msg, "");
 
-  // char pipe1writemessage[30] = "Hello Server!!";
-  // write(pid[1], pipe1writemessage, sizeof(pipe1writemessage));
-  //
-  // int down;
-  // mkfifo("client_side", 0644);
-  // printf("pipe created\n");
-  // down = open ("client_side", O_RDONLY);
-  // //down = open ("client_side", O_RDWR); // kinda useless
-  // printf("pipe opened: %d\n", down);
-  // //semaphores can be used
-
+    // read the response and adds str to it
+    read(up, msg,  100 * sizeof(msg));
+    strcat(msg, "        ~Samuel Konstantinovich 2k18");
+    printf("MESSAGE: %s\n", msg);
+  }
 
   return *to_client;
 }
@@ -65,6 +65,7 @@ int server_handshake(int *to_client) {
   returns the file descriptor for the downstream pipe.
   =========================*/
 int client_handshake(int *to_server) {
+  printf("CLIENT HANDSHAKE\n" );
 
   int down = 0;
   char pid[HANDSHAKE_BUFFER_SIZE];
@@ -93,6 +94,19 @@ int client_handshake(int *to_server) {
   // writes message from client to server using WKP
   write(*to_server, ACK, sizeof(ACK));
   printf("CLIENT WROTE '%s' TO SERVER\n", ACK);
+
+  /*==========================UPDATED VERSION==========================*/
+  char * line = malloc(100 * sizeof(char));
+
+  while (1){
+    printf("Input a message: ");
+    fgets(line, 1000, stdin);
+
+    write(*to_server, line, sizeof(line));
+    printf("CLIENT WROTE %s", line);
+  }
+
+  free(line);
 
   return down;
 }
