@@ -1,5 +1,6 @@
 #include "pipe_networking.h"
 
+// WKP should be protected by a semaphore
 
 /*=========================
   server_handshake
@@ -15,7 +16,7 @@ int server_handshake(int *to_client) {
 
   int up = 0;
   char pid[HANDSHAKE_BUFFER_SIZE];
-  char msg[100];
+  char msg[30];
   // char pipe1writemessage[30] = "Hello Server!!";
 
 
@@ -44,11 +45,13 @@ int server_handshake(int *to_client) {
   while (1){
     // clears the msg variable
     strcpy(msg, "");
+    
 
     // read the response and adds str to it
-    read(up, msg,  100 * sizeof(msg));
+    read(up, msg, sizeof(msg));
+    printf("FIRST MESSAGE: %s\n", msg);
     strcat(msg, "        ~Samuel Konstantinovich 2k18");
-    printf("MESSAGE: %s\n", msg);
+    printf("SECOND MESSAGE: %s\n", msg);
   }
 
   return *to_client;
